@@ -1,0 +1,78 @@
+esphome:
+  name: cama_de_casal
+  platform: ESP32
+  board: esp32doit-devkit-v1
+
+captive_portal:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+logger:
+
+ota:
+
+api:
+
+binary_sensor:
+  - platform: template
+    name: "Cama de Casal - Marlon - Ocupação"
+    id: cama_de_casal_marlon_ocupacao
+    lambda: |-
+      if (id(cama_casal_marlon_sensor_ocupacao).state < id(trigger_level_marlon).state) {
+        return true;
+      } else {
+        return false;
+      }
+  
+  - platform: template
+    name: "Cama de Casal - Marla - Ocupação"
+    id: cama_de_casal_marla_ocupacao
+    lambda: |-
+      if (id(cama_casal_marla_sensor_ocupacao).state < id(trigger_level_marla).state) {
+        return true;
+      } else {
+        return false;
+      }
+
+sensor:
+  - platform: adc
+    pin: GPIO34
+    name: "Cama de Casal - Marlon - Sensor de Ocupação"
+    id: "cama_casal_marlon_sensor_ocupacao"
+    icon: mdi:bed
+    update_interval: 0.5s
+    attenuation: 11db
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 1
+      - or:
+          - throttle: 180s
+          - delta: 0.02
+
+  - platform: adc
+    pin: GPIO35
+    name: "Cama de Casal - Marla - Sensor de Ocupação"
+    id: "cama_casal_marla_sensor_ocupacao"
+    icon: mdi:bed
+    update_interval: 0.5s
+    attenuation: 11db
+    filters:
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 1
+      - or:
+          - throttle: 180s
+          - delta: 0.02
+
+  - platform: homeassistant
+    name: "Trigger Level - Marlon"
+    id: "trigger_level_marlon"
+    entity_id: input_number.cama_de_casal_marlon_nivel_volts_ativacao
+
+  - platform: homeassistant
+    name: "Trigger Level - Marla"
+    id: "trigger_level_marla"
+    entity_id: input_number.cama_de_casal_marla_nivel_volts_ativacao
