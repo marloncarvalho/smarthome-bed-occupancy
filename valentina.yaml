@@ -1,0 +1,74 @@
+esphome:
+  name: cama_de_valentina
+  platform: ESP8266
+  board: d1_mini
+  friendly_name: Sensores de Ocupação da Cama, Temperatura e Umidade
+
+captive_portal:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  manual_ip:
+    static_ip: 192.168.30.188
+    gateway: 192.168.30.1
+    subnet: 255.255.255.0
+
+logger:
+
+ota:
+
+api:
+
+i2c:
+  sda: D2
+  scl: D1
+
+binary_sensor:
+  - platform: template
+    name: "Cama de Valentina - Ocupação"
+    id: cama_de_valentina_ocupacao
+    lambda: |-
+      if (id(cama_valentina_sensor_ocupacao).state < id(trigger_level_valentina).state) {
+        return true;
+      } else {
+        return false;
+      }
+  
+sensor:
+  - platform: adc
+    pin: A0
+    name: "Cama de Valentina - Sensor de Ocupação"
+    id: "cama_valentina_sensor_ocupacao"
+    icon: mdi:bed
+    update_interval: 0.5s
+    filters:
+      - multiply: 3.3
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 1
+      - or:
+          - throttle: 180s
+          - delta: 0.02
+
+  - platform: hdc1080
+    temperature:
+      name: "Quarto de Valentina - Sensor de Temperatura"
+      filters:
+        - median:
+            window_size: 7
+            send_every: 4
+            send_first_at: 3
+    humidity:
+      name: "Quarto de Valentina - Sensor de Umidade"
+      filters:
+        - median:
+            window_size: 7
+            send_every: 4
+            send_first_at: 3
+    update_interval: 5s
+
+  - platform: homeassistant
+    name: "Trigger Level - Valentina"
+    id: "trigger_level_valentina"
+    entity_id: input_number.cama_de_valentina_ativacao_presenca
