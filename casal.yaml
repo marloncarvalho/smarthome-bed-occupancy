@@ -1,5 +1,5 @@
 esphome:
-  name: cama_de_casal
+  name: casal_sensor_ocupacao_cama
   platform: ESP32
   board: esp32doit-devkit-v1
 
@@ -8,10 +8,9 @@ captive_portal:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  manual_ip:
-    static_ip: 192.168.26.103
-    gateway: 192.168.26.1
-    subnet: 255.255.255.0
+  ap:
+    ssid: "Cama Casal Wifi"
+    password: !secret wifi_ap_password
 
 logger:
 
